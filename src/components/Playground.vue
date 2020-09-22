@@ -122,9 +122,8 @@ export default {
         });
     },
     slope(y, x) {
-      let s = x === 0 ? 0 : y / x;
-      let angle = Math.atan(s) * 57.2958;
-      return angle;
+      let angle = Math.atan2(y, x) * 57.2958;
+      return 180 + angle;
     },
     startDrag(e) {
       // console.log("drag-started");
