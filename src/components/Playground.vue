@@ -9,10 +9,15 @@
       class="svg-canvas"
       xmlns="http://www.w3.org/2000/svg"
       ref="svg_canvas"
-      @click.self="add_node"
-      @mouseup="stop_drag"
-      @mousemove="setDangling"
+      @click.self="addNode"
+      @mouseup="cancelFieldActions"
+      @mousemove="doMouseMoveActions"
     >
+      <delete-relation
+        v-if="show_delete_rln"
+        :pos="line_delete_pos"
+        @delete-item="lineClose"
+      />
       <g v-for="(rln, i) in relations" :key="'rln-' + i">
         <line
           class="node-relation"
@@ -20,6 +25,7 @@
           :x2="rln.end.x"
           :y1="rln.start.y"
           :y2="rln.end.y"
+          @contextmenu.prevent.stop="showLineClose"
         ></line>
       </g>
       <line
@@ -35,13 +41,19 @@
         :key="node.id"
         :transform="`translate(${node.x} ${node.y})`"
       >
-        <circle r="10" class="node-drag"></circle>
+        <circle
+          r="15"
+          :data-node-id="node.id"
+          class="node-drag"
+          @mousedown.self.stop="moveNode"
+          @mouseup.self.stop="stopMove"
+        ></circle>
         <circle
           :data-node-id="node.id"
           r="5"
           class="node"
-          @mousedown.self.stop="start_drag"
-          @mouseup.self.stop="stop_drag"
+          @mousedown.self.stop="startDrag"
+          @mouseup.self.stop="stopDrag"
         ></circle>
         <text class="node-name" x="15" y="5">
           {{ node.name }}
@@ -52,15 +64,23 @@
 </template>
 
 <script>
+import DeleteRelation from "@/components/DeleteRelation";
 export default {
   name: "Playground",
+  components: { DeleteRelation },
   data() {
     return {
       allow_add: false,
+      is_moving_node: false,
+      moving_node: null,
+      move_diff_x: 0,
+      move_diff_y: 0,
       is_dragging: false,
       start_drag_id: null,
       stop_drag_id: null,
       rln_dangling: null,
+      show_delete_rln: false,
+      line_delete_pos: {},
       nodes: [
         { x: 10, y: 85, name: "node-1", id: 1 },
         { x: 20, y: 45, name: "node-2", id: 2 }
@@ -69,7 +89,7 @@ export default {
     };
   },
   methods: {
-    add_node(e) {
+    addNode(e) {
       if (this.allow_add)
         this.nodes.push({
           x: e.offsetX,
@@ -78,7 +98,7 @@ export default {
           id: this.nodes.length + 1
         });
     },
-    start_drag(e) {
+    startDrag(e) {
       console.log("drag-started");
       this.rln_dangling = {
         start: { x: e.offsetX, y: e.offsetY },
@@ -86,21 +106,21 @@ export default {
       };
       this.is_dragging = true;
       this.stop_drag_id = null;
-      this.start_drag_id = +e.target.getAttribute("data-node-id");
+      this.start_drag_id = +this.getElementNodeID(e.target);
     },
-    stop_drag(e) {
+    stopDrag(e) {
       console.log("drag-stop-fired");
-      let id = e.target.getAttribute("data-node-id");
+      let id = this.getElementNodeID(e.target);
       if (this.is_dragging && this.start_drag_id && id) {
         console.log("drag-stopped");
         this.stop_drag_id = id;
-        this.draw_relation();
+        this.drawRelation();
       }
       this.is_dragging = false;
       this.start_drag_id = null;
       this.rln_dangling = null;
     },
-    draw_relation() {
+    drawRelation() {
       if (
         this.start_drag_id &&
         this.stop_drag_id &&
@@ -126,6 +146,48 @@ export default {
           end: { x: e.offsetX, y: e.offsetY }
         };
       }
+    },
+    showLineClose(e) {
+      this.line_delete_pos = { x: e.offsetX, y: e.offsetY };
+      this.show_delete_rln = true;
+    },
+    lineClose() {
+      this.show_delete_rln = false;
+    },
+    getElementNodeID(el) {
+      return el.getAttribute("data-node-id");
+    },
+    moveNode(e) {
+      let id = this.getElementNodeID(e.target);
+      if (!this.is_moving_node && id) {
+        this.moving_node = this.getNodeByID(id);
+        this.is_moving_node = true;
+        console.log("moving-started");
+        this.move_diff_x = e.offsetX - this.moving_node.x;
+        this.move_diff_y = e.offsetY - this.moving_node.y;
+      }
+    },
+    stopMove() {
+      console.log("moving-stopped");
+      this.is_moving_node = false;
+      this.moving_node = null;
+      this.move_diff_x = 0;
+      this.move_diff_y = 0;
+    },
+    keepMoving(e) {
+      if (this.is_moving_node) {
+        console.log("moving");
+        this.moving_node.x = e.offsetX - this.move_diff_x;
+        this.moving_node.y = e.offsetY - this.move_diff_y;
+      }
+    },
+    cancelFieldActions(e) {
+      this.stopDrag(e);
+      this.stopMove();
+    },
+    doMouseMoveActions(e) {
+      this.setDangling(e);
+      this.keepMoving(e);
     }
   }
 };
