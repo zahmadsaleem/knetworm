@@ -13,11 +13,7 @@
       @mouseup="cancelFieldActions"
       @mousemove="doMouseMoveActions"
     >
-      <delete-relation
-        v-if="show_delete_rln"
-        :pos="line_delete_pos"
-        @delete-item="lineClose"
-      />
+      <!--      RELATIONSHIPS   -->
       <g v-for="(rln, i) in relations" :key="'rln-' + i">
         <line
           class="node-relation"
@@ -25,9 +21,10 @@
           :x2="rln.end.x"
           :y1="rln.start.y"
           :y2="rln.end.y"
-          @contextmenu.prevent.stop="showLineClose"
+          @contextmenu.prevent.stop="showClose"
         ></line>
       </g>
+      <!--      DANGLING LINE  -->
       <line
         v-if="is_dragging"
         class="node-relation"
@@ -36,6 +33,7 @@
         :y1="rln_dangling.start.y"
         :y2="rln_dangling.end.y"
       ></line>
+      <!--      NODES   -->
       <g
         v-for="node in nodes"
         :key="node.id"
@@ -43,10 +41,12 @@
       >
         <circle
           r="15"
+          data-plg-type="node"
           :data-node-id="node.id"
           class="node-drag"
           @mousedown.self.stop="moveNode"
           @mouseup.self.stop="stopMove"
+          @contextmenu.prevent.stop="showClose"
         ></circle>
         <circle
           :data-node-id="node.id"
@@ -59,6 +59,13 @@
           {{ node.name }}
         </text>
       </g>
+      <!-- CLOSE -->
+      <delete-relation
+        v-if="show_delete_rln"
+        :pos="line_delete_pos"
+        @delete-item="lineClose"
+        style="z-index: 1000"
+      />
     </svg>
   </div>
 </template>
@@ -99,7 +106,7 @@ export default {
         });
     },
     startDrag(e) {
-      console.log("drag-started");
+      // console.log("drag-started");
       this.rln_dangling = {
         start: { x: e.offsetX, y: e.offsetY },
         end: { x: e.offsetX, y: e.offsetY }
@@ -112,7 +119,7 @@ export default {
       console.log("drag-stop-fired");
       let id = this.getElementNodeID(e.target);
       if (this.is_dragging && this.start_drag_id && id) {
-        console.log("drag-stopped");
+        // console.log("drag-stopped");
         this.stop_drag_id = id;
         this.drawRelation();
       }
@@ -147,7 +154,7 @@ export default {
         };
       }
     },
-    showLineClose(e) {
+    showClose(e) {
       this.line_delete_pos = { x: e.offsetX, y: e.offsetY };
       this.show_delete_rln = true;
     },
@@ -162,13 +169,13 @@ export default {
       if (!this.is_moving_node && id) {
         this.moving_node = this.getNodeByID(id);
         this.is_moving_node = true;
-        console.log("moving-started");
+        // console.log("moving-started");
         this.move_diff_x = e.offsetX - this.moving_node.x;
         this.move_diff_y = e.offsetY - this.moving_node.y;
       }
     },
     stopMove() {
-      console.log("moving-stopped");
+      // console.log("moving-stopped");
       this.is_moving_node = false;
       this.moving_node = null;
       this.move_diff_x = 0;
@@ -176,7 +183,7 @@ export default {
     },
     keepMoving(e) {
       if (this.is_moving_node) {
-        console.log("moving");
+        // console.log("moving");
         this.moving_node.x = e.offsetX - this.move_diff_x;
         this.moving_node.y = e.offsetY - this.move_diff_y;
       }
@@ -224,5 +231,8 @@ export default {
 .node-relation {
   stroke: gold;
   stroke-width: 2px;
+  &:hover {
+    stroke-width: 4px;
+  }
 }
 </style>
