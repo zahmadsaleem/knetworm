@@ -12,8 +12,26 @@
       xmlns="http://www.w3.org/2000/svg"
       ref="svg_canvas"
       @click.self="add_node"
-      @mouseup.self="stop_drag"
+      @mouseup="stop_drag"
+      @mousemove="setDangling"
     >
+      <g v-for="(rln, i) in relations" :key="'rln-' + i">
+        <line
+          class="node-relation"
+          :x1="rln.start.x"
+          :x2="rln.end.x"
+          :y1="rln.start.y"
+          :y2="rln.end.y"
+        ></line>
+      </g>
+      <line
+        v-if="is_dragging"
+        class="node-relation"
+        :x1="rln_dangling.start.x"
+        :x2="rln_dangling.end.x"
+        :y1="rln_dangling.start.y"
+        :y2="rln_dangling.end.y"
+      ></line>
       <g
         v-for="node in nodes"
         :key="node.id"
@@ -24,19 +42,10 @@
           :data-node-id="node.id"
           r="5"
           class="node"
-          @mousedown.stop="start_drag"
-          @mouseup.stop="stop_drag"
+          @mousedown.self.stop="start_drag"
+          @mouseup.self.stop="stop_drag"
         ></circle>
         <text class="node-name" x="15" y="5">{{ node.name }}</text>
-      </g>
-      <g v-for="(rln, i) in relations" :key="'rln-' + i">
-        <line
-          class="node-relation"
-          :x1="rln.start.x"
-          :x2="rln.end.x"
-          :y1="rln.start.y"
-          :y2="rln.end.y"
-        ></line>
       </g>
     </svg>
   </div>
@@ -51,6 +60,7 @@ export default {
       is_dragging: false,
       start_drag_id: null,
       stop_drag_id: null,
+      rln_dangling: null,
       nodes: [
         { x: 10, y: 85, name: "node-1", id: 1 },
         { x: 20, y: 45, name: "node-2", id: 2 }
@@ -69,35 +79,53 @@ export default {
         });
     },
     start_drag(e) {
-      console.log("start", e.target.getAttribute("data-node-id"));
+      console.log("drag-started");
+      this.rln_dangling = {
+        start: { x: e.offsetX, y: e.offsetY },
+        end: { x: e.offsetX, y: e.offsetY }
+      };
       this.is_dragging = true;
       this.stop_drag_id = null;
       this.start_drag_id = +e.target.getAttribute("data-node-id");
     },
     stop_drag(e) {
+      console.log("drag-stopped-fired");
       let id = e.target.getAttribute("data-node-id");
       if (this.is_dragging && this.start_drag_id && id) {
-        console.log("stop", id);
+        console.log("drag-stopped");
         this.stop_drag_id = id;
-        this.draw_line();
+        this.draw_relation();
       }
       this.is_dragging = false;
       this.start_drag_id = null;
+      this.rln_dangling = null;
     },
-    draw_line() {
-      if (this.start_drag_id && this.stop_drag_id) {
+    draw_relation() {
+      if (
+        this.start_drag_id &&
+        this.stop_drag_id &&
+        this.start_drag_id !== this.stop_drag_id
+      ) {
         let start = this.getNodeByID(this.start_drag_id);
         let end = this.getNodeByID(this.stop_drag_id);
         let rln = {
-          start: { x: start.x, y: start.y },
-          end: { x: end.x, y: end.y }
+          start,
+          end
         };
-        console.log(rln);
         this.relations.push(rln);
       }
     },
     getNodeByID(id) {
       return this.nodes.find(x => x.id === +id);
+    },
+    setDangling(e) {
+      if (this.is_dragging) {
+        let start = this.getNodeByID(this.start_drag_id);
+        this.rln_dangling = {
+          start: { x: start.x, y: start.y },
+          end: { x: e.offsetX, y: e.offsetY }
+        };
+      }
     }
   }
 };
