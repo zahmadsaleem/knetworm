@@ -23,6 +23,18 @@
           :y2="rln.end.y"
           @contextmenu.prevent.stop="showClose"
         ></line>
+        <g
+          :transform="
+            `
+            translate(${rln.end.x} ${rln.end.y})
+            scale(20)
+            rotate(${slope(rln.start.y - rln.end.y, rln.start.x - rln.end.x)})
+            `
+          "
+        >
+          <line x1="-1" x2="0" y1="1" y2="0" class="arrow-line"></line>
+          <line x1="-1" x2="0" y1="-1" y2="0" class="arrow-line"></line>
+        </g>
       </g>
       <!--      DANGLING LINE  -->
       <line
@@ -90,11 +102,14 @@ export default {
       show_delete_rln: false,
       line_delete_pos: {},
       nodes: [
-        { x: 10, y: 85, name: "node-1", id: 1 },
-        { x: 20, y: 45, name: "node-2", id: 2 }
+        { x: 100, y: 185, name: "node-1", id: 1 },
+        { x: 200, y: 45, name: "node-2", id: 2 }
       ],
       relations: []
     };
+  },
+  mounted() {
+    this.relations.push({ start: this.nodes[0], end: this.nodes[1] });
   },
   methods: {
     addNode(e) {
@@ -105,6 +120,11 @@ export default {
           name: "node-" + (this.nodes.length + 1),
           id: this.nodes.length + 1
         });
+    },
+    slope(y, x) {
+      let s = x === 0 ? 0 : y / x;
+      let angle = Math.atan(s) * 57.2958;
+      return angle;
     },
     startDrag(e) {
       // console.log("drag-started");
@@ -234,6 +254,10 @@ $secondary: #d90429;
 
 .node-name::selection {
   background: none;
+}
+.arrow-line {
+  stroke: $secondaryLighter;
+  stroke-width: 0.2px;
 }
 
 .node-relation {
