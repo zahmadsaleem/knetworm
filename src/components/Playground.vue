@@ -6,8 +6,6 @@
 
     <svg
       baseProfile="full"
-      width="500"
-      height="500"
       class="svg-canvas"
       xmlns="http://www.w3.org/2000/svg"
       ref="svg_canvas"
@@ -45,7 +43,9 @@
           @mousedown.self.stop="start_drag"
           @mouseup.self.stop="stop_drag"
         ></circle>
-        <text class="node-name" x="15" y="5">{{ node.name }}</text>
+        <text class="node-name" x="15" y="5">
+          {{ node.name }}
+        </text>
       </g>
     </svg>
   </div>
@@ -89,7 +89,7 @@ export default {
       this.start_drag_id = +e.target.getAttribute("data-node-id");
     },
     stop_drag(e) {
-      console.log("drag-stopped-fired");
+      console.log("drag-stop-fired");
       let id = e.target.getAttribute("data-node-id");
       if (this.is_dragging && this.start_drag_id && id) {
         console.log("drag-stopped");
@@ -133,18 +133,26 @@ export default {
 
 <style scoped lang="scss">
 .svg-canvas {
+  width: 80vw;
+  height: 80vh;
   display: block;
   border: black solid thin;
   margin: auto;
 }
+
 .node {
   fill: dimgrey;
 }
+
 .node-drag {
   fill: aqua;
 }
+
 .node-name {
   fill: gold;
+  user-select: none;
+  -webkit-user-drag: none;
+  -webkit-user-select: none;
 }
 
 .node-name::selection {
