@@ -72,6 +72,7 @@
 
 <script>
 import DeleteRelation from "@/components/DeleteRelation";
+
 export default {
   name: "Playground",
   components: { DeleteRelation },
@@ -101,7 +102,7 @@ export default {
         this.nodes.push({
           x: e.offsetX,
           y: e.offsetY,
-          name: "node-" + this.nodes.length,
+          name: "node-" + (this.nodes.length + 1),
           id: this.nodes.length + 1
         });
     },
@@ -201,6 +202,12 @@ export default {
 </script>
 
 <style scoped lang="scss">
+$primary: #2b2d42;
+$primaryLighter: #8d99ae;
+$light: #edf2f4;
+$secondaryLighter: #ef233c;
+$secondary: #d90429;
+
 .svg-canvas {
   width: 80vw;
   height: 80vh;
@@ -210,15 +217,16 @@ export default {
 }
 
 .node {
-  fill: dimgrey;
+  fill: $primary;
 }
 
 .node-drag {
-  fill: aqua;
+  fill: $primaryLighter;
 }
 
 .node-name {
-  fill: gold;
+  fill: $primary;
+  font-family: monospace;
   user-select: none;
   -webkit-user-drag: none;
   -webkit-user-select: none;
@@ -229,8 +237,9 @@ export default {
 }
 
 .node-relation {
-  stroke: gold;
+  stroke: $secondaryLighter;
   stroke-width: 2px;
+
   &:hover {
     stroke-width: 4px;
   }
