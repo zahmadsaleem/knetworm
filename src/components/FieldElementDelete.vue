@@ -1,7 +1,7 @@
 <template>
   <g
     :transform="`translate(${pos.x} ${pos.y - 20}) scale(2)`"
-    @click="() => $emit('delete-item')"
+    @click="e => $emit('delete-item', e)"
   >
     <circle r="5" class="close-circle"></circle>
     <line x1="-2" x2="2" y1="-2" y2="2" class="close-line"></line>

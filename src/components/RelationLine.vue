@@ -1,5 +1,5 @@
 <template>
-  <g>
+  <g @contextmenu.prevent.stop="showClose" :data-relation-id="relation.id">
     <line
       class="node-relation"
       :x1="relation.start.x"
@@ -38,6 +38,9 @@ export default {
     slope(y, x) {
       let angle = Math.atan2(y, x) * 57.2958;
       return 180 + angle;
+    },
+    showClose(e) {
+      this.$emit("show-close", e);
     }
   }
 };

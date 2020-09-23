@@ -3,7 +3,6 @@
     <button @click="allow_add = !allow_add">
       {{ allow_add ? "Disable" : "Enable" }} Add
     </button>
-
     <svg
       baseProfile="full"
       class="svg-canvas"
@@ -14,14 +13,12 @@
       @mousemove="doMouseMoveActions"
     >
       <!--      RELATIONSHIPS   -->
-
       <relation-line
         v-for="(rln, i) in relations"
         :key="'rln-' + i"
         :relation="rln"
-        @contextmenu.prevent.stop="showClose"
+        @show-close="showClose"
       />
-
       <!--      DANGLING LINE  -->
       <relation-line v-if="is_dragging" :relation="rln_dangling" />
       <!--      NODES   -->
@@ -37,10 +34,9 @@
       />
       <!-- CLOSE -->
       <field-element-delete
-        v-if="show_delete_rln"
+        v-if="show_delete"
         :pos="line_delete_pos"
         @delete-item="deleteElement"
-        style="z-index: 1000"
       />
     </svg>
   </div>
@@ -65,8 +61,9 @@ export default {
       start_drag_id: null,
       stop_drag_id: null,
       rln_dangling: null,
-      show_delete_rln: false,
+      show_delete: false,
       line_delete_pos: {},
+      delete_element_temp: null,
       nodes: [
         { x: 100, y: 185, name: "node-1", id: 1 },
         { x: 200, y: 45, name: "node-2", id: 2 }
@@ -142,13 +139,30 @@ export default {
     },
     showClose(e) {
       this.line_delete_pos = { x: e.offsetX, y: e.offsetY };
-      this.show_delete_rln = true;
+      this.show_delete = true;
+      let node_id = this.getElementNodeID(e.target);
+      let rln_id = this.getElementRelationID(e.target);
+      this.delete_element_temp = node_id
+        ? [node_id, this.nodes]
+        : rln_id
+        ? [rln_id, this.relations]
+        : null;
     },
     deleteElement() {
-      this.show_delete_rln = false;
+      let [id, arr] = this.delete_element_temp;
+      let index = arr.findIndex(n => n === id);
+      arr.splice(index, 1);
+      this.clearDelete();
+    },
+    clearDelete() {
+      this.show_delete = false;
+      this.delete_element_temp = null;
     },
     getElementNodeID(el) {
       return el.getAttribute("data-node-id");
+    },
+    getElementRelationID(el) {
+      return el.getAttribute("data-relation-id");
     },
     moveNode(e) {
       let id = this.getElementNodeID(e.target);
@@ -177,6 +191,7 @@ export default {
     cancelFieldActions(e) {
       this.stopDrag(e);
       this.stopMove();
+      this.clearDelete();
     },
     doMouseMoveActions(e) {
       this.setDangling(e);
