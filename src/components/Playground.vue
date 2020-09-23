@@ -46,6 +46,7 @@
 import FieldElementDelete from "@/components/FieldElementDelete";
 import RelationLine from "@/components/RelationLine";
 import NodeElement from "@/components/NodeElement";
+import { slope } from "@/utils/geometry_utils";
 
 export default {
   name: "Playground",
@@ -65,8 +66,8 @@ export default {
       line_delete_pos: {},
       delete_element_temp: null,
       nodes: [
-        { x: 100, y: 185, name: "node-1", id: 1 },
-        { x: 200, y: 45, name: "node-2", id: 2 }
+        { x: 100, y: 185, name: "node-1", id: "1" },
+        { x: 200, y: 45, name: "node-2", id: "2" }
       ],
       relations: []
     };
@@ -79,18 +80,15 @@ export default {
     });
   },
   methods: {
+    slope,
     addNode(e) {
       if (this.allow_add)
         this.nodes.push({
           x: e.offsetX,
           y: e.offsetY,
           name: "node-" + (this.nodes.length + 1),
-          id: this.nodes.length + 1
+          id: (this.nodes.length + 1).toString()
         });
-    },
-    slope(y, x) {
-      let angle = Math.atan2(y, x) * 57.2958;
-      return 180 + angle;
     },
     startDrag(e) {
       // console.log("drag-started");
@@ -130,9 +128,6 @@ export default {
         }
       }
     },
-    getNodeByID(id) {
-      return this.nodes.find(x => x.id === +id);
-    },
     setDangling(e) {
       if (this.is_dragging) {
         let start = this.getNodeByID(this.start_drag_id);
@@ -141,33 +136,6 @@ export default {
           end: { x: e.offsetX, y: e.offsetY }
         };
       }
-    },
-    showClose(e) {
-      this.line_delete_pos = { x: e.offsetX, y: e.offsetY };
-      this.show_delete = true;
-      let node_id = this.getElementNodeID(e.target);
-      let rln_id = this.getElementRelationID(e.target);
-      this.delete_element_temp = node_id
-        ? [node_id, this.nodes]
-        : rln_id
-        ? [rln_id, this.relations]
-        : null;
-    },
-    deleteElement() {
-      let [id, arr] = this.delete_element_temp;
-      let index = arr.findIndex(n => n === id);
-      arr.splice(index, 1);
-      this.clearDelete();
-    },
-    clearDelete() {
-      this.show_delete = false;
-      this.delete_element_temp = null;
-    },
-    getElementNodeID(el) {
-      return el.getAttribute("data-node-id");
-    },
-    getElementRelationID(el) {
-      return el.getAttribute("data-relation-id");
     },
     moveNode(e) {
       let id = this.getElementNodeID(e.target);
@@ -193,6 +161,44 @@ export default {
         this.moving_node.y = e.offsetY - this.move_diff_y;
       }
     },
+    showClose(e) {
+      this.line_delete_pos = { x: e.offsetX, y: e.offsetY };
+      this.show_delete = true;
+      let node_id = this.getElementNodeID(e.target);
+      let rln_id = this.getElementRelationID(e.target);
+      this.delete_element_temp = node_id
+        ? [node_id, "nodes"]
+        : rln_id
+        ? [rln_id, "relations"]
+        : null;
+    },
+    deleteElement() {
+      console.log(this.delete_element_temp);
+      if (this.delete_element_temp) {
+        const findAndDeleteByID = (arr, id) => {
+          let index = arr.findIndex(n => n === id);
+          arr.splice(index, 1);
+        };
+        let [id, arrName] = this.delete_element_temp;
+        console.log(id, arrName);
+        // delete node and relations
+        if (arrName === "nodes") {
+          this.getNodeRelationIDs(id).forEach(x =>
+            findAndDeleteByID(this.relations, x)
+          );
+          findAndDeleteByID(this.nodes, id);
+        }
+        // delete relation only
+        if (arrName === "relations") {
+          findAndDeleteByID(this.relations, id);
+        }
+      }
+      this.clearDelete();
+    },
+    clearDelete() {
+      this.show_delete = false;
+      this.delete_element_temp = null;
+    },
     cancelFieldActions(e) {
       this.stopDrag(e);
       this.stopMove();
@@ -202,8 +208,45 @@ export default {
       this.setDangling(e);
       this.keepMoving(e);
     },
+    getNodeByID(id) {
+      return this.nodes.find(x => x.id === id);
+    },
     getRelationByID(id) {
       return this.relations.find(r => r.id === id);
+    },
+    getNodeRelations(node_id) {
+      return this.relations.filter(r => {
+        let [a, b] = r.id.split("-");
+        return a === node_id || b === node_id;
+      });
+    },
+    getRelationNodes(rln_id) {
+      return this.nodes.filter(n => {
+        let [a, b] = rln_id.split("-");
+        return a === n.id || b === n.id;
+      });
+    },
+    getNodeRelationIDs(node_id) {
+      return this.relations
+        .filter(r => {
+          let [a, b] = r.id.split("-");
+          return a === node_id || b === node_id;
+        })
+        .map(r => r.id);
+    },
+    getRelationNodeIDs(rln_id) {
+      return this.nodes
+        .filter(n => {
+          let [a, b] = rln_id.split("-");
+          return a === n.id || b === n.id;
+        })
+        .map(n => n.id);
+    },
+    getElementNodeID(el) {
+      return el.getAttribute("data-node-id");
+    },
+    getElementRelationID(el) {
+      return el.getAttribute("data-relation-id");
     },
     generateRelationID(nodeID_a, nodeID_b) {
       if (!nodeID_a || !nodeID_b) return;

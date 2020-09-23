@@ -1,7 +1,7 @@
 <template>
   <g
     :transform="`translate(${pos.x} ${pos.y - 20}) scale(2)`"
-    @click="e => $emit('delete-item', e)"
+    @click.stop="deleteItem"
   >
     <circle r="5" class="close-circle"></circle>
     <line x1="-2" x2="2" y1="-2" y2="2" class="close-line"></line>
@@ -14,6 +14,12 @@ export default {
   name: "FieldElementDelete",
   props: {
     pos: { type: Object, required: true }
+  },
+  methods: {
+    deleteItem() {
+      console.log("delete item invoked");
+      this.$emit("delete-item");
+    }
   }
 };
 </script>

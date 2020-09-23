@@ -1,11 +1,13 @@
 <template>
-  <g @contextmenu.prevent.stop="showClose" :data-relation-id="relation.id">
+  <g>
     <line
       class="node-relation"
+      :data-relation-id="relation.id"
       :x1="relation.start.x"
       :x2="relation.end.x"
       :y1="relation.start.y"
       :y2="relation.end.y"
+      @contextmenu.prevent.stop="showClose"
     ></line>
     <g
       :transform="
