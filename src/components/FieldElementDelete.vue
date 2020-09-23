@@ -11,7 +11,7 @@
 
 <script>
 export default {
-  name: "DeleteRelation",
+  name: "FieldElementDelete",
   props: {
     pos: { type: Object, required: true }
   }

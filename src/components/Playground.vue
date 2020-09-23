@@ -15,67 +15,26 @@
     >
       <!--      RELATIONSHIPS   -->
       <g v-for="(rln, i) in relations" :key="'rln-' + i">
-        <line
-          class="node-relation"
-          :x1="rln.start.x"
-          :x2="rln.end.x"
-          :y1="rln.start.y"
-          :y2="rln.end.y"
-          @contextmenu.prevent.stop="showClose"
-        ></line>
-        <g
-          :transform="
-            `
-            translate(${rln.end.x} ${rln.end.y})
-            scale(20)
-            rotate(${slope(rln.start.y - rln.end.y, rln.start.x - rln.end.x)})
-            `
-          "
-        >
-          <line x1="-1" x2="0" y1="1" y2="0" class="arrow-line"></line>
-          <line x1="-1" x2="0" y1="-1" y2="0" class="arrow-line"></line>
-        </g>
+        <relation-line :relation="rln" @contextmenu.prevent.stop="showClose" />
       </g>
       <!--      DANGLING LINE  -->
-      <line
-        v-if="is_dragging"
-        class="node-relation"
-        :x1="rln_dangling.start.x"
-        :x2="rln_dangling.end.x"
-        :y1="rln_dangling.start.y"
-        :y2="rln_dangling.end.y"
-      ></line>
+      <relation-line v-if="is_dragging" :relation="rln_dangling" />
       <!--      NODES   -->
-      <g
+      <node-element
         v-for="node in nodes"
+        :node="node"
         :key="node.id"
-        :transform="`translate(${node.x} ${node.y})`"
-      >
-        <circle
-          r="15"
-          data-plg-type="node"
-          :data-node-id="node.id"
-          class="node-drag"
-          @mousedown.self.stop="moveNode"
-          @mouseup.self.stop="stopMove"
-          @contextmenu.prevent.stop="showClose"
-        ></circle>
-        <circle
-          :data-node-id="node.id"
-          r="5"
-          class="node"
-          @mousedown.self.stop="startDrag"
-          @mouseup.self.stop="stopDrag"
-        ></circle>
-        <text class="node-name" x="15" y="5">
-          {{ node.name }}
-        </text>
-      </g>
+        @node-move="moveNode"
+        @node-move-stop="stopMove"
+        @show-close="showClose"
+        @relation-start="startDrag"
+        @relation-stop="stopDrag"
+      />
       <!-- CLOSE -->
-      <delete-relation
+      <field-element-delete
         v-if="show_delete_rln"
         :pos="line_delete_pos"
-        @delete-item="lineClose"
+        @delete-item="deleteElement"
         style="z-index: 1000"
       />
     </svg>
@@ -83,11 +42,13 @@
 </template>
 
 <script>
-import DeleteRelation from "@/components/DeleteRelation";
+import FieldElementDelete from "@/components/FieldElementDelete";
+import RelationLine from "@/components/RelationLine";
+import NodeElement from "@/components/NodeElement";
 
 export default {
   name: "Playground",
-  components: { DeleteRelation },
+  components: { NodeElement, RelationLine, FieldElementDelete },
   data() {
     return {
       allow_add: false,
@@ -136,7 +97,7 @@ export default {
       this.start_drag_id = +this.getElementNodeID(e.target);
     },
     stopDrag(e) {
-      console.log("drag-stop-fired");
+      // console.log("drag-stop-fired");
       let id = this.getElementNodeID(e.target);
       if (this.is_dragging && this.start_drag_id && id) {
         // console.log("drag-stopped");
@@ -178,7 +139,7 @@ export default {
       this.line_delete_pos = { x: e.offsetX, y: e.offsetY };
       this.show_delete_rln = true;
     },
-    lineClose() {
+    deleteElement() {
       this.show_delete_rln = false;
     },
     getElementNodeID(el) {
@@ -221,50 +182,11 @@ export default {
 </script>
 
 <style scoped lang="scss">
-$primary: #2b2d42;
-$primaryLighter: #8d99ae;
-$light: #edf2f4;
-$secondaryLighter: #ef233c;
-$secondary: #d90429;
-
 .svg-canvas {
   width: 80vw;
   height: 80vh;
   display: block;
   border: black solid thin;
   margin: auto;
-}
-
-.node {
-  fill: $primary;
-}
-
-.node-drag {
-  fill: $primaryLighter;
-}
-
-.node-name {
-  fill: $primary;
-  font-family: monospace;
-  user-select: none;
-  -webkit-user-drag: none;
-  -webkit-user-select: none;
-}
-
-.node-name::selection {
-  background: none;
-}
-.arrow-line {
-  stroke: $secondaryLighter;
-  stroke-width: 0.2px;
-}
-
-.node-relation {
-  stroke: $secondaryLighter;
-  stroke-width: 2px;
-
-  &:hover {
-    stroke-width: 4px;
-  }
 }
 </style>
