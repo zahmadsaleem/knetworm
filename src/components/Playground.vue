@@ -14,9 +14,14 @@
       @mousemove="doMouseMoveActions"
     >
       <!--      RELATIONSHIPS   -->
-      <g v-for="(rln, i) in relations" :key="'rln-' + i">
-        <relation-line :relation="rln" @contextmenu.prevent.stop="showClose" />
-      </g>
+
+      <relation-line
+        v-for="(rln, i) in relations"
+        :key="'rln-' + i"
+        :relation="rln"
+        @contextmenu.prevent.stop="showClose"
+      />
+
       <!--      DANGLING LINE  -->
       <relation-line v-if="is_dragging" :relation="rln_dangling" />
       <!--      NODES   -->
