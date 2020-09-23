@@ -75,7 +75,11 @@ export default {
     };
   },
   mounted() {
-    this.relations.push({ start: this.nodes[0], end: this.nodes[1] });
+    this.relations.push({
+      id: this.generateRelationID(this.nodes[0].id, this.nodes[1].id),
+      start: this.nodes[0],
+      end: this.nodes[1]
+    });
   },
   methods: {
     addNode(e) {
@@ -99,7 +103,7 @@ export default {
       };
       this.is_dragging = true;
       this.stop_drag_id = null;
-      this.start_drag_id = +this.getElementNodeID(e.target);
+      this.start_drag_id = this.getElementNodeID(e.target);
     },
     stopDrag(e) {
       // console.log("drag-stop-fired");
@@ -121,11 +125,12 @@ export default {
       ) {
         let start = this.getNodeByID(this.start_drag_id);
         let end = this.getNodeByID(this.stop_drag_id);
-        let rln = {
-          start,
-          end
-        };
-        this.relations.push(rln);
+        let id = this.generateRelationID(this.start_drag_id, this.stop_drag_id);
+        let rln = this.getRelationByID(id);
+        if (!rln) {
+          rln = { id, start, end };
+          this.relations.push(rln);
+        }
       }
     },
     getNodeByID(id) {
@@ -181,6 +186,13 @@ export default {
     doMouseMoveActions(e) {
       this.setDangling(e);
       this.keepMoving(e);
+    },
+    getRelationByID(id) {
+      return this.relations.find(r => r.id === id);
+    },
+    generateRelationID(nodeID_a, nodeID_b) {
+      if (!nodeID_a || !nodeID_b) return;
+      return [nodeID_a, nodeID_b].sort().join("-");
     }
   }
 };
