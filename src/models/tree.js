@@ -37,6 +37,7 @@ class Field {
   getNodeByID(node_id) {
     return getItemByID(this.nodes, node_id);
   }
+
   getRelationByID(relation_id) {
     return getItemByID(this.relations, relation_id);
   }
@@ -92,6 +93,7 @@ class Point {
 class Node extends Point {
   id;
   name;
+
   constructor(id, name) {
     super();
     this.id = id;
@@ -106,6 +108,7 @@ function cleanString(str) {
 function getItemByID(arr, id) {
   return arr.find(i => i.id === id);
 }
+
 function deleteItemByID(arr, id) {
   let index = arr.findIndex(x => x.id === id);
   if (index === -1) return;
