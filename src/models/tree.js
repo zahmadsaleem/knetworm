@@ -43,22 +43,24 @@ class Field {
 
   getRelationsFromNodeID(node_id) {
     return this.relations
-      .map((r, i) => {
-        let [a, b] = Relation.deconstructID(r.id);
+      .map((relation, i) => {
+        let [a, b] = Relation.deconstructID(relation.id);
         if (a === node_id || b === node_id) {
-          return { id: r.id, item: r, index: i };
+          return { id: relation.id, item: relation, index: i };
         }
       })
-      .reduce((acc, item) => (item ? acc.concat(item) : acc), []);
+      .reduce(removeFalsyFromArray, []);
   }
 
   getNodesFromRelationID(relation_id) {
     let [a, b] = Relation.deconstructID(relation_id);
-    return this.nodes.map((node, i) => {
-      if (a === node.id || b === node.id) {
-        return { id: node.id, item: node, index: i };
-      }
-    });
+    return this.nodes
+      .map((node, i) => {
+        if (a === node.id || b === node.id) {
+          return { id: node.id, item: node, index: i };
+        }
+      })
+      .reduce(removeFalsyFromArray, []);
   }
 
   deleteNodeByID(node_id, persist_inheritance = false) {
@@ -109,6 +111,8 @@ function deleteItemByID(arr, id) {
   if (index === -1) return;
   return arr.splice(index, 1);
 }
+
+const removeFalsyFromArray = (acc, item) => (item ? acc.concat(item) : acc);
 
 export class Relation {
   parent;
