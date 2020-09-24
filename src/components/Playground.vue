@@ -4,9 +4,10 @@
       baseProfile="full"
       class="svg-canvas"
       xmlns="http://www.w3.org/2000/svg"
+      id="svg-canvas"
       ref="svg_canvas"
       @click.self="addNode"
-      @mouseup.self="cancelFieldActions"
+      @mouseup="cancelFieldActions"
       @mousemove="doMouseMoveActions"
     >
       <!--      RELATIONSHIPS   -->
@@ -33,7 +34,7 @@
       <field-element-delete
         v-if="show_delete"
         :pos="line_delete_pos"
-        @delete-item="deleteElement"
+        @click.capture="deleteElement"
       />
     </svg>
   </div>
@@ -172,6 +173,7 @@ export default {
         : null;
     },
     deleteElement() {
+      console.log("delete fired");
       if (this.delete_element_temp) {
         const findAndDeleteByID = (arr, id) => {
           let index = arr.findIndex(n => n.id === id);
@@ -201,7 +203,9 @@ export default {
     cancelFieldActions(e) {
       this.stopDrag(e);
       this.stopMove();
-      this.clearDelete();
+      if (e.eventPhase === Event.AT_TARGET) {
+        this.clearDelete();
+      }
     },
     doMouseMoveActions(e) {
       this.setDangling(e);
@@ -260,7 +264,10 @@ export default {
   width: 95vw;
   height: 90vh;
   display: block;
+  margin-left: auto;
+  margin-right: auto;
   border: black solid thin;
   box-sizing: border-box;
+  border-radius: 1em;
 }
 </style>
