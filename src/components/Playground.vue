@@ -9,7 +9,7 @@
       xmlns="http://www.w3.org/2000/svg"
       ref="svg_canvas"
       @click.self="addNode"
-      @mouseup="cancelFieldActions"
+      @mouseup.self="cancelFieldActions"
       @mousemove="doMouseMoveActions"
     >
       <!--      RELATIONSHIPS   -->
@@ -173,14 +173,13 @@ export default {
         : null;
     },
     deleteElement() {
-      console.log(this.delete_element_temp);
       if (this.delete_element_temp) {
         const findAndDeleteByID = (arr, id) => {
-          let index = arr.findIndex(n => n === id);
+          let index = arr.findIndex(n => n.id === id);
           arr.splice(index, 1);
         };
         let [id, arrName] = this.delete_element_temp;
-        console.log(id, arrName);
+        console.log(`deleting ${id} from ${arrName}`);
         // delete node and relations
         if (arrName === "nodes") {
           this.getNodeRelationIDs(id).forEach(x =>
@@ -192,12 +191,13 @@ export default {
         if (arrName === "relations") {
           findAndDeleteByID(this.relations, id);
         }
+        this.clearDelete();
       }
-      this.clearDelete();
     },
     clearDelete() {
       this.show_delete = false;
       this.delete_element_temp = null;
+      this.line_delete_pos = {};
     },
     cancelFieldActions(e) {
       this.stopDrag(e);
