@@ -72,6 +72,12 @@ export default {
       relations: []
     };
   },
+  created() {
+    window.addEventListener("keyup", this.keyboardShortcutsListener);
+  },
+  unmounted() {
+    window.removeEventListener("keyup", this.keyboardShortcutsListener);
+  },
   mounted() {
     this.relations.push({
       id: this.generateRelationID(this.nodes[0].id, this.nodes[1].id),
@@ -81,6 +87,9 @@ export default {
   },
   methods: {
     slope,
+    keyboardShortcutsListener(e) {
+      if (e.key === "Escape") this.cancelFieldActions(e);
+    },
     addNode(e) {
       if (this.allow_add)
         this.nodes.push({
