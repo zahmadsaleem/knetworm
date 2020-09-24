@@ -1,8 +1,5 @@
 <template>
-  <div class="hello">
-    <button @click="allow_add = !allow_add">
-      {{ allow_add ? "Disable" : "Enable" }} Add
-    </button>
+  <div>
     <svg
       baseProfile="full"
       class="svg-canvas"
@@ -51,9 +48,11 @@ import { slope } from "@/utils/geometry_utils";
 export default {
   name: "Playground",
   components: { NodeElement, RelationLine, FieldElementDelete },
+  props: {
+    allow_add: { type: Boolean, default: () => false }
+  },
   data() {
     return {
-      allow_add: false,
       is_moving_node: false,
       moving_node: null,
       move_diff_x: 0,
@@ -258,10 +257,10 @@ export default {
 
 <style scoped lang="scss">
 .svg-canvas {
-  width: 80vw;
-  height: 80vh;
+  width: 95vw;
+  height: 90vh;
   display: block;
   border: black solid thin;
-  margin: auto;
+  box-sizing: border-box;
 }
 </style>
