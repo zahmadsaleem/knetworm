@@ -1,11 +1,8 @@
 <template>
   <div>
     <svg
-      baseProfile="full"
       class="svg-canvas"
       xmlns="http://www.w3.org/2000/svg"
-      id="svg-canvas"
-      ref="svg_canvas"
       @click.self="addNode"
       @mouseup="cancelFieldActions"
       @mousemove="doMouseMoveActions"
@@ -45,6 +42,7 @@ import FieldElementDelete from "@/components/FieldElementDelete";
 import RelationLine from "@/components/RelationLine";
 import NodeElement from "@/components/NodeElement";
 import { slope } from "@/utils/geometry_utils";
+import field from "@/models/tree";
 
 export default {
   name: "Playground",
@@ -65,11 +63,7 @@ export default {
       show_delete: false,
       line_delete_pos: {},
       delete_element_temp: null,
-      nodes: [
-        { x: 100, y: 185, name: "node-1", id: "1" },
-        { x: 200, y: 45, name: "node-2", id: "2" }
-      ],
-      relations: []
+      field: field
     };
   },
   created() {
@@ -79,11 +73,19 @@ export default {
     window.removeEventListener("keyup", this.keyboardShortcutsListener);
   },
   mounted() {
-    this.relations.push({
-      id: this.generateRelationID(this.nodes[0].id, this.nodes[1].id),
-      start: this.nodes[0],
-      end: this.nodes[1]
-    });
+    this.field.nodes.push(
+      { x: 100, y: 185, name: "node-1", id: "1" },
+      { x: 200, y: 45, name: "node-2", id: "2" }
+    );
+    this.field.addRelation(this.nodes[0], this.nodes[1]);
+  },
+  computed: {
+    nodes() {
+      return this.field.nodes;
+    },
+    relations() {
+      return this.field.relations;
+    }
   },
   methods: {
     slope,
@@ -91,13 +93,13 @@ export default {
       if (e.key === "Escape") this.cancelFieldActions(e);
     },
     addNode(e) {
-      if (this.allow_add)
-        this.nodes.push({
-          x: e.offsetX,
-          y: e.offsetY,
-          name: "node-" + (this.nodes.length + 1),
-          id: (this.nodes.length + 1).toString()
-        });
+      if (this.allow_add) {
+        let node = this.field.addNode("node-" + (this.field.nodes.length + 1));
+        if (node) {
+          node.x = e.offsetX;
+          node.y = e.offsetY;
+        }
+      }
     },
     startDrag(e) {
       // console.log("drag-started");
@@ -127,14 +129,9 @@ export default {
         this.stop_drag_id &&
         this.start_drag_id !== this.stop_drag_id
       ) {
-        let start = this.getNodeByID(this.start_drag_id);
-        let end = this.getNodeByID(this.stop_drag_id);
-        let id = this.generateRelationID(this.start_drag_id, this.stop_drag_id);
-        let rln = this.getRelationByID(id);
-        if (!rln) {
-          rln = { id, start, end };
-          this.relations.push(rln);
-        }
+        let child = this.getNodeByID(this.start_drag_id);
+        let parent = this.getNodeByID(this.stop_drag_id);
+        this.field.addRelation(parent, child);
       }
     },
     setDangling(e) {
@@ -184,22 +181,13 @@ export default {
     deleteElement() {
       console.log("delete fired");
       if (this.delete_element_temp) {
-        const findAndDeleteByID = (arr, id) => {
-          let index = arr.findIndex(n => n.id === id);
-          arr.splice(index, 1);
-        };
         let [id, arrName] = this.delete_element_temp;
         console.log(`deleting ${id} from ${arrName}`);
-        // delete node and relations
         if (arrName === "nodes") {
-          this.getNodeRelationIDs(id).forEach(x =>
-            findAndDeleteByID(this.relations, x)
-          );
-          findAndDeleteByID(this.nodes, id);
+          this.field.deleteNodeByID(id);
         }
-        // delete relation only
         if (arrName === "relations") {
-          findAndDeleteByID(this.relations, id);
+          this.field.deleteRelationByID(id);
         }
         this.clearDelete();
       }
@@ -221,48 +209,16 @@ export default {
       this.keepMoving(e);
     },
     getNodeByID(id) {
-      return this.nodes.find(x => x.id === id);
+      return this.field.getNodeByID(id);
     },
     getRelationByID(id) {
-      return this.relations.find(r => r.id === id);
-    },
-    getNodeRelations(node_id) {
-      return this.relations.filter(r => {
-        let [a, b] = r.id.split("-");
-        return a === node_id || b === node_id;
-      });
-    },
-    getRelationNodes(rln_id) {
-      return this.nodes.filter(n => {
-        let [a, b] = rln_id.split("-");
-        return a === n.id || b === n.id;
-      });
-    },
-    getNodeRelationIDs(node_id) {
-      return this.relations
-        .filter(r => {
-          let [a, b] = r.id.split("-");
-          return a === node_id || b === node_id;
-        })
-        .map(r => r.id);
-    },
-    getRelationNodeIDs(rln_id) {
-      return this.nodes
-        .filter(n => {
-          let [a, b] = rln_id.split("-");
-          return a === n.id || b === n.id;
-        })
-        .map(n => n.id);
+      return this.field.getRelationByID(id);
     },
     getElementNodeID(el) {
       return el.getAttribute("data-node-id");
     },
     getElementRelationID(el) {
       return el.getAttribute("data-relation-id");
-    },
-    generateRelationID(nodeID_a, nodeID_b) {
-      if (!nodeID_a || !nodeID_b) return;
-      return [nodeID_a, nodeID_b].sort().join("-");
     }
   }
 };
