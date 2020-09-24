@@ -42,12 +42,14 @@ class Field {
   }
 
   getRelationsFromNodeID(node_id) {
-    return this.relations.map((r, i) => {
-      let [a, b] = Relation.deconstructID(r.id);
-      if (a === node_id || b === node_id) {
-        return { id: r.id, item: r, index: i };
-      }
-    });
+    return this.relations
+      .map((r, i) => {
+        let [a, b] = Relation.deconstructID(r.id);
+        if (a === node_id || b === node_id) {
+          return { id: r.id, item: r, index: i };
+        }
+      })
+      .reduce((acc, item) => (item ? acc.concat(item) : acc), []);
   }
 
   getNodesFromRelationID(relation_id) {
