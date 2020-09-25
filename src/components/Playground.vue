@@ -73,15 +73,16 @@ export default {
     window.removeEventListener("keyup", this.keyboardShortcutsListener);
   },
   mounted() {
-    this.field.nodes.push(
+    [
       { x: 100, y: 185, name: "node-1", id: "1" },
       { x: 200, y: 45, name: "node-2", id: "2" }
-    );
-    this.field.addRelation(this.nodes[0], this.nodes[1]);
+    ].map(x => (this.field.nodes[x.id] = x));
+
+    this.field.addRelation(this.getNodeByID("1"), this.getNodeByID("2"));
   },
   computed: {
     nodes() {
-      return this.field.nodes;
+      return Object.values(this.field.nodes);
     },
     relations() {
       return this.field.relations;
@@ -94,7 +95,7 @@ export default {
     },
     addNode(e) {
       if (this.allow_add) {
-        let node = this.field.addNode("node-" + (this.field.nodes.length + 1));
+        let node = this.field.addNode("node-" + (this.nodes.length + 1));
         if (node) {
           node.x = e.offsetX;
           node.y = e.offsetY;
