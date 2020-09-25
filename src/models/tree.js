@@ -83,6 +83,36 @@ class Field {
   deleteRelationByID(id) {
     return deleteItemByID(this.relations, id);
   }
+
+  getParents(node_id) {
+    let relations = this.getRelationsFromNodeID(node_id);
+    return relations.filter(x => x.child.id === node_id);
+  }
+
+  getChildren(node_id) {
+    let relations = this.getRelationsFromNodeID(node_id);
+    return relations.filter(x => x.parent.id === node_id);
+  }
+
+  isAcyclic() {}
+
+  // getAncestors(node_id) {}
+  //
+  // getDescendants(node_id) {}
+  //
+
+  static LayoutSpacingX = 50;
+  static LayoutSpacingY = 10;
+
+  autoLayout() {
+    // for all nodes
+    // if node has parents
+    // move to parents location + spacing (check if space is available, choose space)
+  }
+
+  scaleX() {}
+  scaleY() {}
+  scale() {}
 }
 
 class Point {
