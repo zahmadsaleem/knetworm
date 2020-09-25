@@ -43,15 +43,17 @@ class Field {
   }
 
   getRelationsFromNodeID(node_id) {
-    return this.relations.filter(relation => {
-      let [a, b] = Relation.deconstructID(relation.id);
-      return a === node_id || b === node_id;
+    let relations = [];
+    this.relations.map((relation, index) => {
+      if (relation.parent.id === node_id || relation.child.id === node_id)
+        relations.push({ item: relation, index });
     });
+    return relations;
   }
 
   getNodesFromRelationID(relation_id) {
-    let [a, b] = Relation.deconstructID(relation_id);
-    return [this.nodes[a], this.nodes[b]];
+    let relation = this.getRelationByID(relation_id);
+    return [this.nodes[relation.parent.id], this.nodes[relation.child.id]];
   }
 
   deleteNodeByID(node_id, persist_inheritance = false) {
@@ -86,6 +88,56 @@ class Field {
   }
 
   isAcyclic() {
+    let graph = this.getTopDownGraph();
+    let visited = null;
+    graph.root = [...Object.keys(graph)];
+    let stack = ["root"];
+    let is_acyclic = false;
+    let i = 0;
+    while (stack.length > 0) {
+      console.log(
+        `queue ${JSON.stringify(stack)}, visited ${JSON.stringify(
+          visited
+        )}, graph ${JSON.stringify(graph)}, i ${i}`
+      );
+      visited = visited || {};
+      // [id, []children]
+      let id = stack[stack.length - 1]; /* last item */
+      let children = graph[id];
+      if (visited[id]) {
+        is_acyclic = true;
+        console.log(`visited---------- ${id}`);
+        break;
+      }
+
+      if (children) {
+        stack.push(...children);
+      }
+      visited[id] = visited[id] || true;
+      stack.pop();
+    }
+    return is_acyclic;
+  }
+
+  // getAncestors(node_id) {}
+  //
+  // getDescendants(node_id) {}
+  //
+
+  getTopDownGraph() {
+    return this.relations.reduce((acc, item) => {
+      (acc[item.parent.id] = acc[item.parent.id] || []).push(item.child.id);
+      return acc;
+    }, {});
+  }
+
+  static LayoutSpacingX = 50;
+  static LayoutSpacingY = 10;
+
+  autoLayout() {
+    // for all nodes
+    // if node has parents
+    // move to parents location + spacing (check if space is available, choose space)
     let node_dependency_count = [];
 
     // count dependencies
@@ -103,24 +155,6 @@ class Field {
 
     // do dfs
     // nodeID : isVisited
-    let visited = {};
-    this.relations.map((rln, index) => {
-      visited[index] = true;
-    });
-  }
-
-  // getAncestors(node_id) {}
-  //
-  // getDescendants(node_id) {}
-  //
-
-  static LayoutSpacingX = 50;
-  static LayoutSpacingY = 10;
-
-  autoLayout() {
-    // for all nodes
-    // if node has parents
-    // move to parents location + spacing (check if space is available, choose space)
   }
 
   scaleX() {}
