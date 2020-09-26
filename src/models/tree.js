@@ -87,10 +87,11 @@ class Field {
     return relations.filter(x => x.parent.id === node_id);
   }
 
-  isAcyclic(graph, nodes) {
-    // let graph = this.getTopDownGraph();
+  // TODO: convert to non-recursive
+  isAcyclic(node_id = null) {
+    let graph = this.getTopDownGraph();
     graph.root = [...Object.keys(graph)];
-    // let nodes = Object.keys(this.nodes);
+    let nodes = node_id ? [node_id] : Object.keys(this.nodes);
     const cycle = (id, visited, stack_trace) => {
       console.log(stack_trace);
       if (visited[id] === true) return true;
@@ -113,6 +114,51 @@ class Field {
     return false;
   }
 
+  isAcyclic2(graph, nodes) {
+    // node id: is visited
+    let visited = {};
+    // node id: on stack
+    let on_stack = {};
+    let stack_trace = [];
+
+    for (let w = 0; w < nodes.length; w++) {
+      if (visited[w] === true) continue;
+      // add node id to stack
+      stack_trace.push(nodes[w]);
+
+      while (stack_trace.length > 0) {
+        // set current to top item on stack
+        let current = stack_trace[stack_trace.length - 1];
+        if (!visited[current]) {
+          // visit, add to current stack
+          visited[current] = true;
+          on_stack[current] = true;
+        } else {
+          // going back ? remove from current stack
+          on_stack[current] = false;
+          stack_trace.pop();
+        }
+
+        const children = graph[current] || [];
+
+        for (const v of children) {
+          if (!visited[v]) {
+            // not visited, so add to stack (but dont visit or count in the current stack yet)
+            stack_trace.push(v);
+          } else if (on_stack[v]) {
+            // already on current stack, its a loop
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  traverseDepth() {}
+
+  traverseBreadth() {}
+
   // getAncestors(node_id) {}
   //
   // getDescendants(node_id) {}
@@ -121,6 +167,13 @@ class Field {
   getTopDownGraph() {
     return this.relations.reduce((acc, item) => {
       (acc[item.parent.id] = acc[item.parent.id] || []).push(item.child.id);
+      return acc;
+    }, {});
+  }
+
+  getBottomUpGraph() {
+    return this.relations.reduce((acc, item) => {
+      (acc[item.child.id] = acc[item.child.id] || []).push(item.parent.id);
       return acc;
     }, {});
   }
@@ -152,7 +205,9 @@ class Field {
   }
 
   scaleX() {}
+
   scaleY() {}
+
   scale() {}
 }
 
