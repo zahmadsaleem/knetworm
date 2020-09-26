@@ -87,7 +87,6 @@ class Field {
     return relations.filter(x => x.parent.id === node_id);
   }
 
-  // TODO: convert to non-recursive
   isAcyclic(node_id = null) {
     let graph = this.getTopDownGraph();
     graph.root = [...Object.keys(graph)];
@@ -114,7 +113,10 @@ class Field {
     return false;
   }
 
-  isAcyclic2(graph, nodes) {
+  isAcyclic2(node_id = null) {
+    let graph = this.getTopDownGraph();
+    graph.root = [...Object.keys(graph)];
+    let nodes = node_id ? [node_id] : Object.keys(this.nodes);
     // node id: is visited
     let visited = {};
     // node id: on stack
