@@ -87,36 +87,30 @@ class Field {
     return relations.filter(x => x.parent.id === node_id);
   }
 
-  isAcyclic() {
-    let graph = this.getTopDownGraph();
-    let visited = null;
+  isAcyclic(graph, nodes) {
+    // let graph = this.getTopDownGraph();
     graph.root = [...Object.keys(graph)];
-    let stack = ["root"];
-    let is_acyclic = false;
-    let i = 0;
-    while (stack.length > 0) {
-      console.log(
-        `queue ${JSON.stringify(stack)}, visited ${JSON.stringify(
-          visited
-        )}, graph ${JSON.stringify(graph)}, i ${i}`
-      );
-      visited = visited || {};
-      // [id, []children]
-      let id = stack[stack.length - 1]; /* last item */
+    // let nodes = Object.keys(this.nodes);
+    const cycle = (id, visited, stack_trace) => {
+      console.log(stack_trace);
+      if (visited[id] === true) return true;
+      visited[id] = true;
       let children = graph[id];
-      if (visited[id]) {
-        is_acyclic = true;
-        console.log(`visited---------- ${id}`);
-        break;
-      }
-
       if (children) {
-        stack.push(...children);
+        return children.some(id2 =>
+          cycle(id2, Object.assign({}, visited), [...stack_trace, id2])
+        );
       }
-      visited[id] = visited[id] || true;
-      stack.pop();
+      return false;
+    };
+
+    for (let j = 0; j < nodes.length; j++) {
+      let visited = {};
+      let stack = [nodes[j]];
+      if (cycle(nodes[j], visited, stack)) return true;
     }
-    return is_acyclic;
+
+    return false;
   }
 
   // getAncestors(node_id) {}
