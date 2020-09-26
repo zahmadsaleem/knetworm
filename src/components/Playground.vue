@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="playground">
     <svg
       class="svg-canvas"
       xmlns="http://www.w3.org/2000/svg"
@@ -7,16 +7,16 @@
       @mouseup="cancelFieldActions"
       @mousemove="doMouseMoveActions"
     >
-      <!--      RELATIONSHIPS   -->
+      <!--   RELATIONSHIPS   -->
       <relation-line
         v-for="(rln, i) in relations"
         :key="'rln-' + i"
         :relation="rln"
         @show-close="showClose"
       />
-      <!--      DANGLING LINE  -->
+      <!--  DANGLING LINE  -->
       <relation-line v-if="is_dragging" :relation="rln_dangling" />
-      <!--      NODES   -->
+      <!--   NODES   -->
       <node-element
         v-for="node in nodes"
         :node="node"
@@ -34,6 +34,7 @@
         @click.capture="deleteElement"
       />
     </svg>
+    <node-table :field="field" />
   </div>
 </template>
 
@@ -43,10 +44,11 @@ import RelationLine from "@/components/RelationLine";
 import NodeElement from "@/components/NodeElement";
 import { slope } from "@/utils/geometry_utils";
 import field from "@/models/tree";
+import NodeTable from "@/components/NodeTable";
 
 export default {
   name: "Playground",
-  components: { NodeElement, RelationLine, FieldElementDelete },
+  components: { NodeTable, NodeElement, RelationLine, FieldElementDelete },
   props: {
     allow_add: { type: Boolean, default: () => false }
   },
@@ -227,7 +229,7 @@ export default {
 
 <style scoped lang="scss">
 .svg-canvas {
-  width: 95vw;
+  width: 75vw;
   height: 90vh;
   display: block;
   margin-left: auto;
@@ -235,5 +237,12 @@ export default {
   border: black solid thin;
   box-sizing: border-box;
   border-radius: 1em;
+}
+.playground {
+  display: flex;
+}
+.node-table {
+  min-width: 20vw;
+  display: inline-block;
 }
 </style>

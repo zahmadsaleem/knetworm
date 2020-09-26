@@ -1,4 +1,4 @@
-class Field {
+export class Field {
   nodes = {};
   relations = [];
 
@@ -42,6 +42,7 @@ class Field {
     return getItemByID(this.relations, relation_id);
   }
 
+  // @returns {item: Node, index: int}
   getRelationsFromNodeID(node_id) {
     let relations = [];
     this.relations.map((relation, index) => {
@@ -79,12 +80,20 @@ class Field {
 
   getParents(node_id) {
     let relations = this.getRelationsFromNodeID(node_id);
-    return relations.filter(x => x.child.id === node_id);
+    let parents = [];
+    relations.map(({ item }) => {
+      if (item.parent.id === node_id) parents.push(item.child);
+    });
+    return parents;
   }
 
   getChildren(node_id) {
     let relations = this.getRelationsFromNodeID(node_id);
-    return relations.filter(x => x.parent.id === node_id);
+    let children = [];
+    relations.map(({ item }) => {
+      if (item.child.id === node_id) children.push(item.parent);
+    });
+    return children;
   }
 
   isAcyclic(node_id = null) {
@@ -271,14 +280,14 @@ export class Relation {
     return this.child;
   }
 
-  // alias parent
-  get end() {
-    return this.parent;
-  }
-
   // alias child
   set start(node) {
     this.child = node;
+  }
+
+  // alias parent
+  get end() {
+    return this.parent;
   }
 
   // alias parent
