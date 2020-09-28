@@ -15,13 +15,13 @@
         @show-close="showClose"
       />
       <!--  DANGLING LINE  -->
-      <relation-line v-if="is_dragging" :relation="rln_dangling" />
+      <relation-line v-if="isDraggable" :relation="rln_dangling" />
       <!--   NODES   -->
       <node-element
         v-for="node in nodes"
         :node="node"
         :key="node.id"
-        @node-move="moveNode"
+        @node-move="startMove"
         @node-move-stop="stopMove"
         @show-close="showClose"
         @relation-start="startDrag"
@@ -88,6 +88,12 @@ export default {
     },
     relations() {
       return this.field.relations;
+    },
+    isDraggable() {
+      return !this.allow_add && this.is_dragging;
+    },
+    isMovable() {
+      return !this.allow_add && this.is_moving_node;
     }
   },
   methods: {
@@ -117,7 +123,7 @@ export default {
     stopDrag(e) {
       // console.log("drag-stop-fired");
       let id = this.getElementNodeID(e.target);
-      if (this.is_dragging && this.start_drag_id && id) {
+      if (this.isDraggable && this.start_drag_id && id) {
         // console.log("drag-stopped");
         this.stop_drag_id = id;
         this.drawRelation();
@@ -146,7 +152,7 @@ export default {
         };
       }
     },
-    moveNode(e) {
+    startMove(e) {
       let id = this.getElementNodeID(e.target);
       if (!this.is_moving_node && id) {
         this.moving_node = this.getNodeByID(id);
@@ -164,7 +170,7 @@ export default {
       this.move_diff_y = 0;
     },
     keepMoving(e) {
-      if (this.is_moving_node) {
+      if (this.isMovable) {
         // console.log("moving");
         this.moving_node.x = e.offsetX - this.move_diff_x;
         this.moving_node.y = e.offsetY - this.move_diff_y;
