@@ -34,7 +34,7 @@
         @click.capture="deleteElement"
       />
     </svg>
-    <node-table :field="field" />
+    <node-table :field="field" class="node-table" />
   </div>
 </template>
 
@@ -231,9 +231,6 @@ export default {
 .svg-canvas {
   width: 75vw;
   height: 90vh;
-  display: block;
-  margin-left: auto;
-  margin-right: auto;
   border: black solid thin;
   box-sizing: border-box;
   border-radius: 1em;
@@ -242,7 +239,6 @@ export default {
   display: flex;
 }
 .node-table {
-  min-width: 20vw;
-  display: inline-block;
+  flex-grow: 1;
 }
 </style>

@@ -9,8 +9,14 @@
       </thead>
       <tbody>
         <tr v-for="node in nodes" :key="node.id">
-          <td>{{ node.name }}</td>
-          <td>{{ parents(node.id) }}</td>
+          <td
+            class="node-name-cell"
+            contenteditable="true"
+            @input="e => changeName(e, node)"
+          >
+            {{ node.name }}
+          </td>
+          <td class="node-child-cell">{{ parents(node.id) }}</td>
         </tr>
       </tbody>
     </table>
@@ -33,11 +39,36 @@ export default {
   methods: {
     parents(node_id) {
       let p = this.field.getParents(node_id);
-      console.log(p);
       return p.length > 0 ? p.map(x => x.name).join(", ") : "--";
+    },
+    changeName(e, node) {
+      node.name = e.target.innerText;
     }
   }
 };
 </script>
 
-<style scoped></style>
+<style scoped>
+table {
+  width: 100%;
+  margin: 0 auto;
+  padding: 0.25em;
+}
+
+th {
+  font-size: 110%;
+  text-align: left;
+}
+td {
+  box-sizing: border-box;
+  padding: 0.15em 0.5em;
+  background: lightsteelblue;
+}
+
+.node-name-cell {
+  width: 25%;
+}
+.node-child-cell {
+  width: 75%;
+}
+</style>
