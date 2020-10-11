@@ -11,11 +11,17 @@
       <relation-line
         v-for="(rln, i) in relations"
         :key="'rln-' + i"
-        :relation="rln"
+        :relation_id="rln.id"
+        :end="getNodeByID(rln.end)"
+        :start="getNodeByID(rln.start)"
         @show-close="showClose"
       />
       <!--  DANGLING LINE  -->
-      <relation-line v-if="isDraggable" :relation="rln_dangling" />
+      <relation-line
+        v-if="isDraggable"
+        :end="rln_dangling.end"
+        :start="rln_dangling.start"
+      />
       <!--   NODES   -->
       <node-element
         v-for="node in nodes"
@@ -44,7 +50,7 @@ import FieldElementDelete from "@/components/FieldElementDelete";
 import RelationLine from "@/components/RelationLine";
 import NodeElement from "@/components/NodeElement";
 import { slope } from "@/utils/geometry_utils";
-import field from "@/models/tree";
+import field, { Point, Node } from "@/models/tree";
 import NodeTable from "@/components/NodeTable";
 
 export default {
@@ -80,16 +86,16 @@ export default {
     [
       { x: 100, y: 185, name: "node-1", id: "1" },
       { x: 200, y: 45, name: "node-2", id: "2" }
-    ].map(x => (this.field.nodes[x.id] = x));
+    ].map(x => (this.field.nodes[x.id] = Object.assign(new Node(), x)));
 
-    this.field.addRelation(this.getNodeByID("1"), this.getNodeByID("2"));
+    this.field.addRelation("1", "2");
   },
   computed: {
     nodes() {
-      return Object.values(this.field.nodes);
+      return this.field.nodesArray;
     },
     relations() {
-      return this.field.relations;
+      return this.field.relationsArray;
     },
     isDraggable() {
       return !this.allow_add && this.is_dragging;
@@ -115,8 +121,8 @@ export default {
     startDrag(e) {
       // console.log("drag-started");
       this.rln_dangling = {
-        start: { x: e.offsetX, y: e.offsetY },
-        end: { x: e.offsetX, y: e.offsetY }
+        start: new Point(e.offsetX, e.offsetY),
+        end: new Point(e.offsetX, e.offsetY)
       };
       this.is_dragging = true;
       this.stop_drag_id = null;
@@ -140,17 +146,15 @@ export default {
         this.stop_drag_id &&
         this.start_drag_id !== this.stop_drag_id
       ) {
-        let child = this.getNodeByID(this.start_drag_id);
-        let parent = this.getNodeByID(this.stop_drag_id);
-        this.field.addRelation(parent, child);
+        this.field.addRelation(this.stop_drag_id, this.start_drag_id);
       }
     },
     setDangling(e) {
       if (this.is_dragging) {
         let start = this.getNodeByID(this.start_drag_id);
         this.rln_dangling = {
-          start: { x: start.x, y: start.y },
-          end: { x: e.offsetX, y: e.offsetY }
+          start: new Point(start.x, start.y),
+          end: new Point(e.offsetX, e.offsetY)
         };
       }
     },
@@ -179,7 +183,7 @@ export default {
       }
     },
     showClose(e) {
-      this.line_delete_pos = { x: e.offsetX, y: e.offsetY };
+      this.line_delete_pos = new Point(e.offsetX, e.offsetY);
       this.show_delete = true;
       let node_id = this.getElementNodeID(e.target);
       let rln_id = this.getElementRelationID(e.target);

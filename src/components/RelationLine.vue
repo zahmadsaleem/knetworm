@@ -2,22 +2,19 @@
   <g>
     <line
       class="node-relation"
-      :data-relation-id="relation.id"
-      :x1="relation.start.x"
-      :x2="relation.end.x"
-      :y1="relation.start.y"
-      :y2="relation.end.y"
+      :data-relation-id="relation_id"
+      :x1="start.x"
+      :x2="end.x"
+      :y1="start.y"
+      :y2="end.y"
       @contextmenu.prevent.stop="showClose"
     ></line>
     <g
       :transform="
         `
-            translate(${relation.end.x} ${relation.end.y})
+            translate(${end.x} ${end.y})
             scale(20)
-            rotate(${slope(
-              relation.start.y - relation.end.y,
-              relation.start.x - relation.end.x
-            )})
+            rotate(${slope(start.y - end.y, start.x - end.x)})
             `
       "
     >
@@ -28,13 +25,14 @@
 </template>
 
 <script>
+import { Point, Node } from "@/models/tree";
+
 export default {
   name: "RelationLine",
   props: {
-    relation: {
-      type: Object,
-      default: () => ({ start: { x: 0, y: 0 }, end: { x: 0, y: 0 } })
-    }
+    relation_id: { type: String },
+    start: { type: [Point, Node], default: () => new Point() },
+    end: { type: [Point, Node], default: () => new Point() }
   },
   methods: {
     slope(y, x) {

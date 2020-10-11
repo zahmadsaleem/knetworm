@@ -1,6 +1,14 @@
 export class Field {
   nodes = {};
-  relations = [];
+  relations = {};
+
+  get nodesArray() {
+    return Object.values(this.nodes);
+  }
+
+  get relationsArray() {
+    return Object.values(this.relations);
+  }
 
   addNode(name) {
     // if (this.hasName(name)) {
@@ -20,17 +28,17 @@ export class Field {
   }
 
   generateID() {
-    let int_id = Object.values(this.nodes).reduce(
+    let int_id = this.nodesArray.reduce(
       (acc, item) => (+item.id >= +acc ? +item.id + 1 : +acc),
       0
     );
     return int_id.toString();
   }
 
-  addRelation(parent, child) {
-    let relation = new Relation(parent, child);
+  addRelation(parent_id, child_id) {
+    let relation = new Relation(parent_id, child_id);
     if (!this.getRelationByID(relation.id)) {
-      this.relations.push(relation);
+      this.relations[relation.id] = relation;
     }
   }
 
@@ -39,22 +47,21 @@ export class Field {
   }
 
   getRelationByID(relation_id) {
-    return getItemByID(this.relations, relation_id);
+    return this.relations[relation_id];
   }
 
-  // @returns {item: Node, index: int}
   getRelationsFromNodeID(node_id) {
     let relations = [];
-    this.relations.map((relation, index) => {
-      if (relation.parent.id === node_id || relation.child.id === node_id)
-        relations.push({ item: relation, index });
+    this.relationsArray.forEach(item => {
+      if (item.parent === node_id || item.child === node_id)
+        relations.push(item);
     });
     return relations;
   }
 
   getNodesFromRelationID(relation_id) {
     let relation = this.getRelationByID(relation_id);
-    return [this.nodes[relation.parent.id], this.nodes[relation.child.id]];
+    return [this.nodes[relation.parent], this.nodes[relation.child]];
   }
 
   deleteNodeByID(node_id, persist_inheritance = false) {
@@ -64,25 +71,22 @@ export class Field {
     let relations = this.getRelationsFromNodeID(node_id);
     if (!persist_inheritance) {
       // delete relations
-      let offset = 0;
-      relations.forEach(({ index }) => {
-        this.relations.splice(index - offset, 1);
-        offset++;
-      });
+      relations.forEach(({ id }) => this.deleteRelationByID(id));
     } else {
-      // transfer relations
+      // TODO: transfer relations
     }
   }
 
   deleteRelationByID(id) {
-    return deleteItemByID(this.relations, id);
+    console.log("deleting relation " + id);
+    delete this.relations[id];
   }
 
   getParents(node_id) {
     let relations = this.getRelationsFromNodeID(node_id);
     let parents = [];
-    relations.map(({ item }) => {
-      if (item.parent.id === node_id) parents.push(item.child);
+    relations.map(({ parent, child }) => {
+      if (parent === node_id) parents.push(this.getNodeByID(child));
     });
     return parents;
   }
@@ -90,8 +94,8 @@ export class Field {
   getChildren(node_id) {
     let relations = this.getRelationsFromNodeID(node_id);
     let children = [];
-    relations.map(({ item }) => {
-      if (item.child.id === node_id) children.push(item.parent);
+    relations.map(({ parent, child }) => {
+      if (child === node_id) children.push(this.getNodeByID(parent));
     });
     return children;
   }
@@ -175,16 +179,18 @@ export class Field {
   // getDescendants(node_id) {}
   //
 
+  // @returns { root:[descendants] }
   getTopDownGraph() {
-    return this.relations.reduce((acc, item) => {
-      (acc[item.parent.id] = acc[item.parent.id] || []).push(item.child.id);
+    return this.relationsArray.reduce((acc, { child, parent }) => {
+      (acc[parent] = acc[parent] || []).push(child);
       return acc;
     }, {});
   }
 
+  // @returns { leaf:[ancestors] }
   getBottomUpGraph() {
-    return this.relations.reduce((acc, item) => {
-      (acc[item.child.id] = acc[item.child.id] || []).push(item.parent.id);
+    return this.relationsArray.reduce((acc, { child, parent }) => {
+      (acc[child] = acc[child] || []).push(parent);
       return acc;
     }, {});
   }
@@ -211,6 +217,7 @@ export class Field {
     // introduce new root
     node_dependency_count["root"] = 0;
 
+    // TODO
     // do dfs
     // nodeID : isVisited
   }
@@ -222,12 +229,17 @@ export class Field {
   scale() {}
 }
 
-class Point {
+export class Point {
   x;
   y;
+
+  constructor(x = 0, y = 0) {
+    this.x = x;
+    this.y = y;
+  }
 }
 
-class Node extends Point {
+export class Node extends Point {
   id;
   name;
 
@@ -242,25 +254,15 @@ function cleanString(str) {
   return String.prototype.toLocaleLowerCase(str);
 }
 
-function getItemByID(arr, id) {
-  return arr.find(i => i.id === id);
-}
-
-function deleteItemByID(arr, id) {
-  let index = arr.findIndex(x => x.id === id);
-  if (index === -1) return;
-  return arr.splice(index, 1);
-}
-
 export class Relation {
   parent;
   child;
   id;
 
-  constructor(parent, child) {
-    this.parent = parent;
-    this.child = child;
-    this.id = this.generateID(this.parent.id, this.child.id);
+  constructor(parent_id, child_id) {
+    this.parent = parent_id;
+    this.child = child_id;
+    this.id = this.generateID(parent_id, child_id);
   }
 
   static get SEPARATOR() {
