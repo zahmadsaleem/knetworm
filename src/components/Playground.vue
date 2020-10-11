@@ -26,6 +26,7 @@
         @show-close="showClose"
         @relation-start="startDrag"
         @relation-stop="stopDrag"
+        :selected="isSelected(node.id)"
       />
       <!-- CLOSE -->
       <field-element-delete
@@ -65,7 +66,8 @@ export default {
       show_delete: false,
       line_delete_pos: {},
       delete_element_temp: null,
-      field: field
+      field: field,
+      selected_nodes: []
     };
   },
   created() {
@@ -209,6 +211,7 @@ export default {
     cancelFieldActions(e) {
       this.stopDrag(e);
       this.stopMove();
+      this.clearSelection();
       if (e.eventPhase === Event.AT_TARGET) {
         this.clearDelete();
       }
@@ -216,6 +219,19 @@ export default {
     doMouseMoveActions(e) {
       this.setDangling(e);
       this.keepMoving(e);
+    },
+    isSelected(id) {
+      return this.selected_nodes.includes(id);
+    },
+    select(id) {
+      this.isSelected(id) ? this.selected_nodes.push(id) : null;
+    },
+    deSelect(id) {
+      let index = this.selected_nodes.indexOf(id);
+      id !== -1 ? this.selected_nodes.splice(index, 1) : null;
+    },
+    clearSelection() {
+      this.selected_nodes = [];
     },
     getNodeByID(id) {
       return this.field.getNodeByID(id);

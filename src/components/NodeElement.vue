@@ -5,6 +5,7 @@
       data-plg-type="node"
       :data-node-id="node.id"
       class="node-drag"
+      :class="selected ? 'selected' : ''"
       @mousedown.self.stop="moveNode"
       @mouseup.self.stop="onMouseUpOuter"
       @contextmenu.prevent.stop="showClose"
@@ -25,7 +26,10 @@
 <script>
 export default {
   name: "NodeElement",
-  props: { node: { type: Object } },
+  props: {
+    node: { type: Object },
+    selected: { type: Boolean, default: () => false }
+  },
   data() {
     return {
       outerRadius: "15px",
@@ -74,5 +78,9 @@ export default {
 
 .node-name::selection {
   background: none;
+}
+
+.selected {
+  stroke: #d90429;
 }
 </style>
