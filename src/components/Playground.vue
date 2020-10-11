@@ -42,7 +42,7 @@
         @click.capture="deleteElement"
       />
     </svg>
-    <node-table :field="field" class="node-table" />
+    <node-table :field="field" class="node-table" @row-clicked="select" />
   </div>
 </template>
 

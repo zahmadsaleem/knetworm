@@ -8,7 +8,11 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="node in nodes" :key="node.id">
+        <tr
+          v-for="node in nodes"
+          :key="node.id"
+          @click="() => rowClicked(node.id)"
+        >
           <td
             class="node-name-cell"
             contenteditable="true"
@@ -43,6 +47,9 @@ export default {
     },
     changeName(e, node) {
       node.name = e.target.innerText;
+    },
+    rowClicked(id) {
+      this.$emit("row-clicked", id);
     }
   }
 };

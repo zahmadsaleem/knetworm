@@ -86,6 +86,6 @@ export default {
 
 .selected {
   stroke: #d90429;
-  stroke-width: 1px;
+  stroke-width: 2px;
 }
 </style>
