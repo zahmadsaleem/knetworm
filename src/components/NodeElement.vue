@@ -1,17 +1,17 @@
 <template>
   <g :transform="`translate(${node.x} ${node.y})`">
     <circle
-      r="15"
+      :r="outerRadius"
       data-plg-type="node"
       :data-node-id="node.id"
       class="node-drag"
       @mousedown.self.stop="moveNode"
-      @mouseup.self.stop="stopMove"
+      @mouseup.self.stop="onMouseUpOuter"
       @contextmenu.prevent.stop="showClose"
     ></circle>
     <circle
       :data-node-id="node.id"
-      r="5"
+      :r="innerRadius"
       class="node"
       @mousedown.self.stop="startDrag"
       @mouseup.self.stop="stopDrag"
@@ -26,12 +26,19 @@
 export default {
   name: "NodeElement",
   props: { node: { type: Object } },
+  data() {
+    return {
+      outerRadius: "15px",
+      innerRadius: "8px"
+    };
+  },
   methods: {
     moveNode(e) {
       this.$emit("node-move", e);
     },
-    stopMove(e) {
+    onMouseUpOuter(e) {
       this.$emit("node-move-stop", e);
+      this.$emit("relation-stop", e);
     },
     showClose(e) {
       this.$emit("show-close", e);
