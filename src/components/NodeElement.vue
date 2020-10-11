@@ -9,6 +9,7 @@
       @mousedown.self.stop="moveNode"
       @mouseup.self.stop="onMouseUpOuter"
       @contextmenu.prevent.stop="showClose"
+      @click.self.stop="onClickOuter"
     ></circle>
     <circle
       :data-node-id="node.id"
@@ -52,6 +53,9 @@ export default {
     },
     stopDrag(e) {
       this.$emit("relation-stop", e);
+    },
+    onClickOuter() {
+      this.$emit("select-node", this.node.id);
     }
   }
 };
@@ -82,5 +86,6 @@ export default {
 
 .selected {
   stroke: #d90429;
+  stroke-width: 1px;
 }
 </style>

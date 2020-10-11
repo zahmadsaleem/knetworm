@@ -32,6 +32,7 @@
         @show-close="showClose"
         @relation-start="startDrag"
         @relation-stop="stopDrag"
+        @select-node="select"
         :selected="isSelected(node.id)"
       />
       <!-- CLOSE -->
@@ -215,9 +216,9 @@ export default {
     cancelFieldActions(e) {
       this.stopDrag(e);
       this.stopMove();
-      this.clearSelection();
       if (e.eventPhase === Event.AT_TARGET) {
         this.clearDelete();
+        this.clearSelection();
       }
     },
     doMouseMoveActions(e) {
@@ -228,7 +229,7 @@ export default {
       return this.selected_nodes.includes(id);
     },
     select(id) {
-      this.isSelected(id) ? this.selected_nodes.push(id) : null;
+      !this.isSelected(id) ? this.selected_nodes.push(id) : null;
     },
     deSelect(id) {
       let index = this.selected_nodes.indexOf(id);
