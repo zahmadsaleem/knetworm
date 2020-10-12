@@ -100,7 +100,7 @@ export class Field {
     return children;
   }
 
-  isAcyclic(node_id = null) {
+  checkAcyclicRecursive(node_id = null) {
     let graph = this.getTopDownGraph();
     graph.root = [...Object.keys(graph)];
     let nodes = node_id ? [node_id] : Object.keys(this.nodes);
@@ -126,7 +126,7 @@ export class Field {
     return false;
   }
 
-  isAcyclic2(node_id = null) {
+  checkAcyclicLoop(node_id = null) {
     let graph = this.getTopDownGraph();
     graph.root = [...Object.keys(graph)];
     let nodes = node_id ? [node_id] : Object.keys(this.nodes);
@@ -170,9 +170,52 @@ export class Field {
     return false;
   }
 
-  traverseDepth() {}
+  traverseDepth(fnAtNode = x => console.log(x)) {
+    if (this.checkAcyclicRecursive()) return null;
+    let graph = this.getTopDownGraph();
+    let nodes = this.nodesArray;
+    // node id: is visited
+    let visited = {};
+    // node id: on stack
+    let on_stack = {};
+    let stack_trace = [];
 
-  traverseBreadth() {}
+    for (let n = 0; n < nodes.length; n++) {
+      if (visited[n] === true) continue;
+      // add node id to stack
+      stack_trace.push(nodes[n]);
+
+      while (stack_trace.length > 0) {
+        // set current to top item on stack
+        let current = stack_trace[stack_trace.length - 1];
+        if (!visited[current.id]) {
+          // visit, add to current stack
+          fnAtNode(current);
+          visited[current.id] = true;
+          on_stack[current.id] = true;
+        } else {
+          // going back ? remove from current stack
+          on_stack[current.id] = false;
+          stack_trace.pop();
+        }
+
+        const children = graph[current.id] || [];
+        // cyclic conditions already checked
+        stack_trace.push(...children);
+      }
+    }
+  }
+
+  traverseBreadth(fnAtNode = x => console.log(x)) {
+    let nodesArray = this.nodesArray;
+    let que = [];
+    while (que.length > 0) {
+      const node = nodesArray[que[que.length - 1]];
+      fnAtNode(node);
+      que.unshift(...this.getChildren(node.id));
+      que.pop();
+    }
+  }
 
   // getAncestors(node_id) {}
   //
