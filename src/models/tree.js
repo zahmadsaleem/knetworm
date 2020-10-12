@@ -170,38 +170,44 @@ export class Field {
     return false;
   }
 
-  traverseDepth(fnAtNode = x => console.log(x)) {
-    if (this.checkAcyclicRecursive()) return null;
+  traverseDepth(fnAtNode = x => console.log(x), ignoreCyclic = false) {
+    if (!ignoreCyclic) {
+      if (this.checkAcyclicRecursive()) return null;
+    }
+
     let graph = this.getTopDownGraph();
     let nodes = this.nodesArray;
-    // node id: is visited
+
     let visited = {};
-    // node id: on stack
     let on_stack = {};
     let stack_trace = [];
 
     for (let n = 0; n < nodes.length; n++) {
+      let width = 1;
       if (visited[n] === true) continue;
-      // add node id to stack
       stack_trace.push(nodes[n]);
 
       while (stack_trace.length > 0) {
-        // set current to top item on stack
         let current = stack_trace[stack_trace.length - 1];
         if (!visited[current.id]) {
-          // visit, add to current stack
-          fnAtNode(current);
+          fnAtNode(current, { depth: stack_trace.length, width });
+          width--;
           visited[current.id] = true;
           on_stack[current.id] = true;
         } else {
-          // going back ? remove from current stack
+          width = 1;
           on_stack[current.id] = false;
           stack_trace.pop();
         }
 
         const children = graph[current.id] || [];
-        // cyclic conditions already checked
-        stack_trace.push(...children);
+        width += children.length;
+        for (const v of children) {
+          if (!visited[v]) {
+            // not visited, so add to stack (but dont visit or count in the current stack yet)
+            stack_trace.push(v);
+          }
+        }
       }
     }
   }
@@ -209,10 +215,21 @@ export class Field {
   traverseBreadth(fnAtNode = x => console.log(x)) {
     let nodesArray = this.nodesArray;
     let que = [];
+    let depths = [];
+    let widths = [];
     while (que.length > 0) {
-      const node = nodesArray[que[que.length - 1]];
-      fnAtNode(node);
-      que.unshift(...this.getChildren(node.id));
+      let queLastIndex = que.length - 1;
+      const node = nodesArray[que[queLastIndex]];
+      let nodeDepth = depths[queLastIndex];
+      fnAtNode(node, { depth: nodeDepth, width: widths[queLastIndex] });
+      let children = this.getChildren(node.id);
+      for (let n = 1; n <= children.length; n++) {
+        que.unshift(children[n]);
+        widths.unshift(n);
+        depths.unshift((nodeDepth || 0) + 1);
+      }
+      widths.pop();
+      depths.pop();
       que.pop();
     }
   }
