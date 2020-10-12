@@ -1,27 +1,33 @@
 <template>
-  <img alt="Vue logo" src="./assets/logo.png" />
-  <HelloWorld msg="Welcome to Your Vue.js + TypeScript App" />
+  <div>
+    <div class="controls-bar">
+      <button @click="allow_add = !allow_add">
+        {{ allow_add ? "Disable" : "Enable" }} Add
+      </button>
+    </div>
+    <playground :allow_add="allow_add" />
+  </div>
 </template>
 
-<script lang="ts">
-import { Options, Vue } from "vue-class-component";
-import HelloWorld from "./components/HelloWorld.vue";
+<script>
+import Playground from "./components/Playground.vue";
 
-@Options({
+export default {
+  name: "App",
   components: {
-    HelloWorld
+    Playground
+  },
+  data() {
+    return {
+      allow_add: false
+    };
   }
-})
-export default class App extends Vue {}
+};
 </script>
 
 <style lang="scss">
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
+.controls-bar {
+  width: 100%;
+  height: 8vh;
 }
 </style>
