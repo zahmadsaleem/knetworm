@@ -11,20 +11,9 @@ export class Field {
   }
 
   addNode(name) {
-    // if (this.hasName(name)) {
-    //   return null;
-    // }
     let node = new Node(this.generateID(), name);
     this.nodes[node.id] = node;
     return node;
-  }
-
-  hasName(name) {
-    return (
-      !!name &&
-      this.nodes.findIndex(x => cleanString(x.name) === cleanString(name)) !==
-        -1
-    );
   }
 
   generateID() {
@@ -172,7 +161,7 @@ export class Field {
 
   traverseDepth(fnAtNode = x => console.log(x), ignoreCyclic = false) {
     if (!ignoreCyclic) {
-      if (this.checkAcyclicRecursive()) return null;
+      if (this.checkAcyclicLoop()) return null;
     }
 
     let graph = this.getTopDownGraph();
@@ -212,7 +201,11 @@ export class Field {
     }
   }
 
-  traverseBreadth(fnAtNode = x => console.log(x)) {
+  traverseBreadth(fnAtNode = x => console.log(x), ignoreCyclic = false) {
+    if (!ignoreCyclic) {
+      if (this.checkAcyclicLoop()) return null;
+    }
+
     let nodesArray = this.nodesArray;
     let que = [];
     let depths = [];
@@ -258,29 +251,7 @@ export class Field {
   static LayoutSpacingX = 50;
   static LayoutSpacingY = 10;
 
-  autoLayout() {
-    // for all nodes
-    // if node has parents
-    // move to parents location + spacing (check if space is available, choose space)
-    let node_dependency_count = [];
-
-    // count dependencies
-    this.relations.map((r, index) => {
-      node_dependency_count[index] = (node_dependency_count[index] || 0) + 1;
-    });
-
-    // replace dangling
-    node_dependency_count.map(([k, v]) => {
-      if (v === 0) node_dependency_count[k] = 1;
-    });
-
-    // introduce new root
-    node_dependency_count["root"] = 0;
-
-    // TODO
-    // do dfs
-    // nodeID : isVisited
-  }
+  autoLayout() {}
 
   scaleX() {}
 
